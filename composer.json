@@ -1,0 +1,20 @@
+{
+  "name": "lingonest/language-exchange-api",
+  "description": "A REST API for a language exchange platform.",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Simeon Simeonov",
+      "email": "meonsdet@icloud.com"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "vlucas/phpdotenv": "^5.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  }
+}
