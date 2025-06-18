@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Database;
 use PDO;
+use App\Services\Validator;
 
 class UserController
 {
@@ -23,6 +24,15 @@ class UserController
     // The file_get_contents("php://input") function reads the raw request body.
     // json_decode then converts the JSON string into a PHP array.
     $data = (array) json_decode(file_get_contents("php://input"), true);
+
+    $validator = new Validator();
+    $errors = $validator->validateRegistration($data);
+
+    if (!empty($errors)) {
+      http_response_code(422);
+      echo json_encode(["errors" => $errors]);
+      return;
+    }
 
     // Validate data
     if(!isset($data["name"]) || !isset($data["email"]) || !isset($data["password"])) {
