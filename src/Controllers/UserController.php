@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Database;
 use PDO;
 use App\Services\Validator;
+use App\Services\JwtService;
 
 class UserController
 {
@@ -98,7 +99,10 @@ class UserController
       return;
     }
 
-    // Authentication successful
-    echo json_encode(["message" => "Login successful", "user_id" => $user["id"]]);
+    // Generate a JWT
+    $jwtService = new JwtService();
+    $token = $jwtService->generate((int)$user["id"]);
+
+    echo json_encode(["access token" => $token]);
   }
 }
