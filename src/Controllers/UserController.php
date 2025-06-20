@@ -9,10 +9,12 @@ use App\Services\JwtService;
 class UserController
 {
   private PDO $conn;
+  private JwtService $jwtService;
 
   public function __construct(Database $database)
   {
     $this->conn = $database->getConnection();
+    $this->jwtService = new JwtService();
   }
 
   /**
@@ -100,9 +102,57 @@ class UserController
     }
 
     // Generate a JWT
-    $jwtService = new JwtService();
-    $token = $jwtService->generate((int)$user["id"]);
+    $token = $this->jwtService->generate((int) $user["id"]);
 
     echo json_encode(["access token" => $token]);
+  }
+
+  /*
+   * Gets the profile information for the authenticated user
+   */
+  public function getProfile(): void
+  {
+    // Get the Authorization header from the request
+    $authHeader = $_SERVER["HTTP_AUTHORIZATION"] ?? null;
+
+    if ($authHeader === null) {
+      http_response_code(401);
+      echo json_encode(["message" => "Authorization token not found."]);
+      return;
+    }
+
+    if (!preg_match("/^Bearer\s+(.*)$/", $authHeader, $matches)) {
+      http_response_code(401);
+      echo json_encode(["Message" => "Invalid token format."]);
+      return;
+    }
+
+    $token = $matches[1];
+
+    // Validate the token
+    $userId = $this->jwtService->validate($token);
+
+    if ($userId === null) {
+      http_response_code(401);
+      echo json_encode(["message" => "Invalid or expired token."]);
+    }
+
+    // If the token is valid, fetch the users data
+    $sql = "SELECT id, name, email, created_at FROM users WHERE id = :id";
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindValue(":id", $userId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user === false) {
+      // Not found
+      http_response_code(404);
+      echo json_encode(["message" => "User not found."]);
+      return;
+    }
+
+    // Send the users public data back
+    echo json_encode($user);
   }
 }
