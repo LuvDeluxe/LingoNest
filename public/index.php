@@ -36,5 +36,8 @@ $router->add("POST", "/api/register", [$user_controller, "register"]);
 // Login route
 $router->add("POST", "/api/login", [$user_controller, "login"]);
 
+// Profile route
+$router->add("GET", "/api/profile", [$user_controller, "getProfile"]);
+
 // Dispatch the request
 $router->dispatch();
