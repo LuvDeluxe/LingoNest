@@ -155,4 +155,66 @@ class UserController
     // Send the users public data back
     echo json_encode($user);
   }
+
+  /*
+   * Adds a language to the authenticated users profile
+   */
+  public function addUserLanguage(): void
+  {
+    // Auth the user
+    $authHeader = $_SERVER["HTTP_AUTHORIZATION"] ?? null;
+    if ($authHeader === null || !preg_match("/^Bearer\s+(.*)$/", $authHeader, $matches)) {
+      http_response_code(401);
+      echo json_encode(["message" => "Authorization token not found or not valid."]);
+      return;
+    }
+
+    $userId = $this->jwtService->validate($matches[1]);
+
+    if ($userId === null) {
+      http_response_code(401);
+      echo json_encode(["message" => "Invalid or expired token."]);
+      return;
+    }
+
+    // Get the input data
+    $data = (array) json_decode(file_get_contents("php://input"), true);
+
+    // Validate the input
+    if (empty($data["language_id"]) || empty($data["status"])) {
+      http_response_code(422);
+      echo json_encode(['errors' => ['language_id and status are required.']]);
+      return;
+    }
+
+    if (!in_array($data["status"], ["native", "learning"])) {
+      http_response_code(422);
+      echo json_encode(["errors" => "status must be either native or learning"]);
+      return;
+    }
+
+    // Insert the data into user_languages
+    $sql = "INSERT INTO user_languages (user_id, language_id, status) VALUES (:user_id, :language_id, :status)";
+
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindValue(":user_id", $userId, PDO::PARAM_INT);
+    $stmt->bindValue(":language_id", $data["language_id"], PDO::PARAM_INT);
+    $stmt->bindValue(":status", $data["status"], PDO::PARAM_INT);
+
+    try {
+      $stmt->execute();
+      http_response_code(201);
+      echo json_decode(["message" => "Language added to profile successfully"]);
+    } catch (\PDOException $e) {
+      if ($e->getCode() === "23000") {
+        http_response_code(409);
+        echo json_encode(["message" => "This language has already been added to your profile"]);
+      }
+      else {
+        throw $e;
+      }
+    }
+  }
+
+  //dsa
 }
