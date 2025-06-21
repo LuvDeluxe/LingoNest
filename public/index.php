@@ -25,10 +25,14 @@ $database = new App\Database(
   $_ENV['DB_PASSWORD']
 );
 
+//Instantiate router
 $router = new App\Router();
 
-// Define API routes
+// Instantiate user controller
 $user_controller = new App\Controllers\UserController($database);
+
+// Instantiate language controller
+$language_controller = new App\Controllers\LanguageController($database);
 
 // Registration Route
 $router->add("POST", "/api/register", [$user_controller, "register"]);
@@ -38,6 +42,9 @@ $router->add("POST", "/api/login", [$user_controller, "login"]);
 
 // Profile route
 $router->add("GET", "/api/profile", [$user_controller, "getProfile"]);
+
+// Languages route
+$router->add("GET", "/api/languages", [$language_controller, "getAllLanguages"]);
 
 // Dispatch the request
 $router->dispatch();
