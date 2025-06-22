@@ -34,6 +34,8 @@ $user_controller = new App\Controllers\UserController($database);
 // Instantiate language controller
 $language_controller = new App\Controllers\LanguageController($database);
 
+// Instantiate middleware
+$middleware = new App\Middleware\AuthMiddleware();
 // Registration Route
 $router->add("POST", "/api/register", [$user_controller, "register"]);
 
@@ -43,8 +45,11 @@ $router->add("POST", "/api/login", [$user_controller, "login"]);
 // Profile route
 $router->add("GET", "/api/profile", [$user_controller, "getProfile"]);
 
-// Languages route
+// Language routes
 $router->add("GET", "/api/languages", [$language_controller, "getAllLanguages"]);
+
+// Protected route to add a language to users profile
+$router->add("POST", "/api/user/languages", [$user_controller, "addUserLanguage"], $middleware);
 
 // Dispatch the request
 $router->dispatch();
