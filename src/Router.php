@@ -11,13 +11,15 @@ class Router
    * @param string $method The HTTP method ('GET', 'POST', etc.)
    * @param string $path The URL path to match (e.g., '/api/register')
    * @param array $handler The controller and method to execute (e.g., [UserController::class, 'register'])
+   * @param object|null $middleware (Optional) The middleware object to run before the handler. Must have a handle() method.
    */
-  public function add(string $method, string $path, array $handler): void
+  public function add(string $method, string $path, array $handler, ?object $middleware = null): void
   {
     $this->routes[] = [
       "method" => $method,
       "path" => $path,
-      "handler" => $handler
+      "handler" => $handler,
+      "middleware" => $middleware
     ];
   }
 
@@ -31,7 +33,13 @@ class Router
 
     foreach ($this->routes as $route) {
       if ($route["path"] === $requestPath && $route["method"] === $requestMethod) {
-        call_user_func($route["handler"]);
+        $params = [];
+
+        if ($route["middleware"] !== null) {
+          $userId = $route["middleware"]->handle();
+          $params[] = $userId;
+        }
+        call_user_func_array($route['handler'], $params);
         return;
       }
     }
