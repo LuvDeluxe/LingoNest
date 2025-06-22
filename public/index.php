@@ -43,7 +43,7 @@ $router->add("POST", "/api/register", [$user_controller, "register"]);
 $router->add("POST", "/api/login", [$user_controller, "login"]);
 
 // Profile route
-$router->add("GET", "/api/profile", [$user_controller, "getProfile"]);
+$router->add("GET", "/api/profile", [$user_controller, "getProfile"], $middleware);
 
 // Language routes
 $router->add("GET", "/api/languages", [$language_controller, "getAllLanguages"]);
