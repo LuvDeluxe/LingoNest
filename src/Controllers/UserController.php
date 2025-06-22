@@ -37,12 +37,6 @@ class UserController
       return;
     }
 
-    // Validate data
-    if(!isset($data["name"]) || !isset($data["email"]) || !isset($data["password"])) {
-      http_response_code(422); //unprocessable entry
-      echo json_encode(["message" => "Missing required fields: name, email and password."]);
-    }
-
     // Verify if user exists
     $sql = "SELECT id FROM users WHERE email = :email";
     $stmt = $this->conn->prepare($sql);
@@ -80,7 +74,7 @@ class UserController
     $data = (array) json_decode(file_get_contents("php://input"), true);
 
     // Validate
-    if (!isset($data["email"]) || !isset($data["password"])) {
+    if (empty($data["email"]) || empty($data["password"])) {
       http_response_code(422);
       echo json_encode(["message" => "Missing email or password"]);
       return;
@@ -110,33 +104,8 @@ class UserController
   /*
    * Gets the profile information for the authenticated user
    */
-  public function getProfile(): void
+  public function getProfile(int $userId): void
   {
-    // Get the Authorization header from the request
-    $authHeader = $_SERVER["HTTP_AUTHORIZATION"] ?? null;
-
-    if ($authHeader === null) {
-      http_response_code(401);
-      echo json_encode(["message" => "Authorization token not found."]);
-      return;
-    }
-
-    if (!preg_match("/^Bearer\s+(.*)$/", $authHeader, $matches)) {
-      http_response_code(401);
-      echo json_encode(["Message" => "Invalid token format."]);
-      return;
-    }
-
-    $token = $matches[1];
-
-    // Validate the token
-    $userId = $this->jwtService->validate($token);
-
-    if ($userId === null) {
-      http_response_code(401);
-      echo json_encode(["message" => "Invalid or expired token."]);
-    }
-
     // If the token is valid, fetch the users data
     $sql = "SELECT id, name, email, created_at FROM users WHERE id = :id";
     $stmt = $this->conn->prepare($sql);
@@ -159,24 +128,8 @@ class UserController
   /*
    * Adds a language to the authenticated users profile
    */
-  public function addUserLanguage(): void
+  public function addUserLanguage(int $userId): void
   {
-    // Auth the user
-    $authHeader = $_SERVER["HTTP_AUTHORIZATION"] ?? null;
-    if ($authHeader === null || !preg_match("/^Bearer\s+(.*)$/", $authHeader, $matches)) {
-      http_response_code(401);
-      echo json_encode(["message" => "Authorization token not found or not valid."]);
-      return;
-    }
-
-    $userId = $this->jwtService->validate($matches[1]);
-
-    if ($userId === null) {
-      http_response_code(401);
-      echo json_encode(["message" => "Invalid or expired token."]);
-      return;
-    }
-
     // Get the input data
     $data = (array) json_decode(file_get_contents("php://input"), true);
 
@@ -199,12 +152,12 @@ class UserController
     $stmt = $this->conn->prepare($sql);
     $stmt->bindValue(":user_id", $userId, PDO::PARAM_INT);
     $stmt->bindValue(":language_id", $data["language_id"], PDO::PARAM_INT);
-    $stmt->bindValue(":status", $data["status"], PDO::PARAM_INT);
+    $stmt->bindValue(":status", $data["status"], PDO::PARAM_STR);
 
     try {
       $stmt->execute();
       http_response_code(201);
-      echo json_decode(["message" => "Language added to profile successfully"]);
+      echo json_encode(["message" => "Language added to profile successfully"]);
     } catch (\PDOException $e) {
       if ($e->getCode() === "23000") {
         http_response_code(409);
