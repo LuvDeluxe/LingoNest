@@ -35,7 +35,7 @@ $user_controller = new App\Controllers\UserController($database);
 $language_controller = new App\Controllers\LanguageController($database);
 
 // Instantiate middleware
-$middleware = new App\Middleware\AuthMiddleware();
+$middleware = new \App\Middleware\AuthMiddleware();
 // Registration Route
 $router->add("POST", "/api/register", [$user_controller, "register"]);
 
