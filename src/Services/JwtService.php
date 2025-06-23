@@ -5,6 +5,8 @@ namespace App\Services;
 // Import JWT lib
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+
+// Use exception
 use Exception;
 
 class JwtService
