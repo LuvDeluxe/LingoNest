@@ -121,6 +121,18 @@ class UserController
       return;
     }
 
+    $sql = "SELECT l.id, l.name, ul.status
+            FROM user_languages ul
+            JOIN languages l ON ul.language_id = l.id
+            WHERE ul.user_id = :user_id";
+
+    $langStmt = $this->conn->prepare($sql);
+    $langStmt->bindValue(":user_id", $userId, PDO::PARAM_INT);
+    $langStmt->execute();
+    $languages = $langStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $user["languages"] = $languages;
+
     // Send the users public data back
     echo json_encode($user);
   }
