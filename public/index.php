@@ -54,5 +54,8 @@ $router->add("POST", "/api/user/languages", [$user_controller, "addUserLanguage"
 // Delete route
 $router->add("DELETE", "/api/user/languages", [$user_controller, "deleteUserLanguage"], $middleware);
 
+// Matching endpoint
+$router->add("GET", "/api/matches", [$user_controller, "getMatches"], $middleware);
+
 // Dispatch the request
 $router->dispatch();
