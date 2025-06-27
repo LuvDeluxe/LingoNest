@@ -121,7 +121,7 @@ class UserController
       return;
     }
 
-    $sql = "SELECT l.id, l.name, ul.status
+    $sql = "SELECT l.id AS language_id, l.name, ul.status, ul.id AS user_language_id
             FROM user_languages ul
             JOIN languages l ON ul.language_id = l.id
             WHERE ul.user_id = :user_id";
@@ -179,6 +179,41 @@ class UserController
         throw $e;
       }
     }
+  }
+
+  /**
+   * Deletes a language from the authenticated users profile
+   * @param int $userId
+   * @return void
+   */
+  public function deleteUserLanguage(int $userId): void
+  {
+    $data = (array) json_decode(file_get_contents("php://input"), true);
+
+    if (empty($data["user_language_id"])) {
+      http_response_code(422);
+      echo json_encode(["errors" => "user_language_id is required"]);
+      return;
+    }
+
+    $sql = "DELETE FROM user_languages 
+             WHERE id = :user_language_id AND user_id = :user_id";
+
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindValue(":user_language_id", $data["user_language_id"], PDO::PARAM_INT);
+    $stmt->bindValue("user_id", $userId, PDO::PARAM_INT);
+
+    $stmt->execute();
+
+    // if rowCount returns 0 it means there is an error. If successful will return 1
+    if ($stmt->rowCount() === 0) {
+      http_response_code(404);
+      json_encode(["message" => "Language not found on profile or you do not have permission to delete it"]);
+      return;
+    }
+
+    // send a success report. 204 no content is standard for successful DELETEs.
+    http_response_code(204);
   }
 
 
