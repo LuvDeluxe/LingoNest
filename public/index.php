@@ -51,5 +51,8 @@ $router->add("GET", "/api/languages", [$language_controller, "getAllLanguages"])
 // Protected route to add a language to users profile
 $router->add("POST", "/api/user/languages", [$user_controller, "addUserLanguage"], $middleware);
 
+// Delete route
+$router->add("DELETE", "/api/user/languages", [$user_controller, "deleteUserLanguage"], $middleware);
+
 // Dispatch the request
 $router->dispatch();
