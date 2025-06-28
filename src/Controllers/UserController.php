@@ -216,5 +216,44 @@ class UserController
     http_response_code(204);
   }
 
+  /*
+   * Finds language exchange partners for the authenticated user
+   */
+  public function getMatches(int $userId): void
+  {
+    $sql = "
+            SELECT
+                u.id, u.name, u.email, u.created_at
+            FROM
+                user_languages AS my_native_languages
+            JOIN
+                user_languages AS partner_learning_languages
+                ON my_native_languages.language_id = partner_learning_languages.language_id
+                AND my_native_languages.user_id != partner_learning_languages.user_id
+            JOIN
+                user_languages AS my_learning_languages
+                ON partner_learning_languages.user_id = my_learning_languages.user_id
+            JOIN
+                user_languages AS partner_native_languages
+                ON my_learning_languages.language_id = partner_native_languages.language_id
+            JOIN
+                users u ON partner_learning_languages.user_id = u.id
+            WHERE
+                my_native_languages.user_id = :current_user_id
+                AND my_native_languages.status = 'native'
+                AND partner_learning_languages.status = 'learning'
+                AND my_learning_languages.status = 'learning'
+                AND partner_native_languages.status = 'native'
+            GROUP BY
+                u.id, u.name, u.email, u.created_at";
 
+    $stmt = $this->conn->prepare($sql);
+
+    $stmt->bindValue(":current_user_id", $userId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $matches = $stmt->fetchAll();
+
+    echo json_encode($matches);
+  }
 }
