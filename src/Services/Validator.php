@@ -42,7 +42,7 @@ class Validator
         $errors[] = "Password must be at least 5 characters long.";
       }
 
-    if (!preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $data['password'])) {
+    if (!preg_match('/[^a-zA-Z0-9]/', $data['password'])) {
       $errors[] = "Password must contain at least one symbol.";
     }
     }
