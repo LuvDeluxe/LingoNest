@@ -7,8 +7,10 @@
         bootstrap="vendor/autoload.php">
 
     <coverage/>
-    <testsuites name="LingoNest Test Suite">
+    <testsuites>
+        <testsuite name="LingoNest Test Suite">
         <directory>tests</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
