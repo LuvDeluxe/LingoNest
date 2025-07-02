@@ -31,5 +31,28 @@ class UserControllerTest extends TestCase
     $mockUserStatement->method("execute")->willReturn(true);
     $mockUserStatement->method("fetch")->willReturn($fakeUser);
 
+    // Mock the SECOND database call (getting the language)
+    $mockLangStatement = $this->createMock(PDOStatement::class);
+    $mockLangStatement->method("execute")->willReturn(true);
+    $mockLangStatement->method("fetchAll")->willReturn($fakeLanguages);
+
+    // Mock for the main PDO connection object
+    $mockPdo = $this->createMock(PDO::class);
+    $mockPdo->method("prepare")
+      ->willReturnOnConsecutiveCalls($mockUserStatement, $mockLangStatement);
+
+    // Mock for database class wrapper
+    $mockDatabase = $this->createMock(Database::class);
+    $mockDatabase->method("getConnection")->willReturn($mockPdo);
+
+    // Create a new UserController and give fake DB object
+    $controller = new UserController($mockDatabase);
+
+    ob_start();
+    $controller->getProfile(1);
+    $actualJsonOutput = ob_get_clean();
+
+    // Assert
+    $this->assertJsonStringEqualsJsonString($expectedJsonOutput, $actualJsonOutput);
   }
 }
