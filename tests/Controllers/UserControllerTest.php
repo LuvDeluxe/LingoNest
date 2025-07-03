@@ -55,4 +55,37 @@ class UserControllerTest extends TestCase
     // Assert
     $this->assertJsonStringEqualsJsonString($expectedJsonOutput, $actualJsonOutput);
   }
+
+  /*
+   * Test the getProfile method for a failure case where the user is NOT found
+   */
+    public function test_getProfile_returns_404_when_user_not_found(): void
+    {
+      $_ENV["JWT_SECRET"] = "test-secret";
+      $expectedJsonOutput = json_encode(["message" => "User not found."]);
+
+      // Configure mock statement to simulate what PDO does when no record found
+      $mockUserStatement = $this->createMock(PDOStatement::class);
+      $mockUserStatement->method("execute")->willReturn(true);
+      $mockUserStatement->method("fetch")->willReturn(false); // Simulate not found
+
+
+      $mockPdo = $this->createMock(PDO::class);
+      $mockPdo->expects($this->once())
+        ->method("prepare")
+        ->willReturn($mockUserStatement);
+
+      $mockDatabase = $this->createMock(Database::class);
+      $mockDatabase->method("getConnection")->willReturn($mockPdo);
+
+      // Act
+      $controller = new UserController($mockDatabase);
+      ob_start();
+      $controller->getProfile(9999);
+      $actualJsonOutput = ob_get_clean();
+
+      // Assert
+      $this->assertJsonStringEqualsJsonString($expectedJsonOutput, $actualJsonOutput);
+      $this->assertEquals(404, http_response_code());
+    }
 }
